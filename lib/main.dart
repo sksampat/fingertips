@@ -1,11 +1,11 @@
-import 'package:flutter/material.dart';
-import './RetrieveLocation.dart';
-import './ListResult.dart';
-
-import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
+import 'dart:ui';
+import 'package:fingertips/ListEntities.dart';
+import 'package:flutter/material.dart';
+import './ListResult.dart';
+import 'dart:async';
 import 'package:http/http.dart' as http;
+import 'package:geolocator/geolocator.dart';
 
 void main() => runApp(MaterialApp(
     home: FingerTips(),
@@ -19,29 +19,45 @@ class FingerTips extends StatefulWidget {
 class _FingerTipsState extends State<FingerTips> {
   @override
 
-  RetrieveLocation getLocation = RetrieveLocation();
+  final Geolocator geolocator = Geolocator()
+    ..forceAndroidLocationManager;
   String _value = null;
   String market = "en-US";
   List<String> _values = new List<String>();
-  String finalLocation = 'default';
-  final token = '0cc8298d0fa64baf8e8c8aad922a77f7';
+  String finalLocation;
+  final token = "0cc8298d0fa64baf8e8c8aad922a77f7";
+  final tokenforentity = "2e76114b4bed4a08af24a0443aa58345";
+  Position _currentPosition;
+  String _currentAddress;
+  String _currentAddressinQueryString;
 
+  _getCurrentLocation() async{
+    geolocator
+        .getCurrentPosition(desiredAccuracy: LocationAccuracy.best)
+        .then((Position position) {
+      _currentPosition = position;
+    });
 
-  void getfinalLocation(){
-    RetrieveLocation();
-    finalLocation = getLocation.getfinalLocation();
+    _getAddressFromLatLng();
   }
 
+  _getAddressFromLatLng() async {
+    try {
+      List<Placemark> p = await geolocator.placemarkFromCoordinates(
+          _currentPosition.latitude, _currentPosition.longitude);
+
+      Placemark place = p[0];
 
 
+      _currentAddress =
+      "${place.locality}, ${place.administrativeArea}, ${place.country}";
 
-  @override
-  void initState() {
-    _values.addAll(["Local", "China", "India", "UK", "Latino", "Mexico"]);
-    _value = _values.elementAt(0);
+      _currentAddressinQueryString = "${place.locality}+${place.administrativeArea}";
+    //  _currentAddressinQueryString = "Boston+Massachusetts";
+    } catch (e) {
+      print(e);
+    }
   }
-
-
 
   void onChanged(String value){
     setState(() {
@@ -56,10 +72,10 @@ class _FingerTipsState extends State<FingerTips> {
   }
 
   void communityUrl(String category){
-    String queryuri = category+"+"+_value+"+community+massachusetts";
-    String searchnews = "https://api.cognitive.microsoft.com/bing/v7.0/news/search?q="+queryuri+"&mkt=en-us";
-
-    getData(searchnews);
+    String queryuri = category+"+"+_value+"+"+_currentAddressinQueryString;
+    String searchnews = "https://fingertips.cognitiveservices.azure.com/bing/v7.0/news/search?q="+queryuri+"&mkt=en-us";
+    print(_currentAddressinQueryString);
+    getNews(searchnews);
 
   }
 
@@ -67,23 +83,27 @@ class _FingerTipsState extends State<FingerTips> {
     String categoryuri = category+"&mkt="+market;
     String categorynews= "https://fingertips.cognitiveservices.azure.com/bing/v7.0/news?category="+categoryuri;
 
-    getData(categorynews);
+    getNews(categorynews);
 
   }
 
-  Future<String> getData(String finalUrl) async{
- //   String queryuri = category+"&mkt="+market;
- //   String searchuri= "https://fingertips.cognitiveservices.azure.com/bing/v7.0/news?category="+queryuri;
+  void entitiesUrl(String category){
+    String entity = category+"+&mkt="+market;
+//    String entityuri= "https://eastus.api.cognitive.microsoft.com/bing/entities?mkt=en-US+&q="+jsonEncode(category);
+    String entityuri = "https://fingertips.cognitiveservices.azure.com/bing/v7.0/entities?mkt=en-US+&q="+jsonEncode(category);
+    getEntities(entityuri);
+
+  }
+
+  Future<String> getNews(String finalUrl) async{
     print(finalUrl);
     var uri = Uri.parse(finalUrl);
     var request =  new http.Request("GET", uri);
-    request.headers['Ocp-Apim-Subscription-Key'] = "0cc8298d0fa64baf8e8c8aad922a77f7";
+    request.headers['Ocp-Apim-Subscription-Key'] = token;
     request.headers['X-MSEdge-ClientID'] = "1";
     request.headers['Accept']  = "application/json";
 
-
     var streamedresponse = await request.send();
-
 
 
    if (streamedresponse.statusCode == 200){
@@ -92,20 +112,66 @@ class _FingerTipsState extends State<FingerTips> {
         context,
         MaterialPageRoute(builder: (context) => ListResult(response)),
       );
-
     }
     else {
       throw Exception("Failed to load");
     }
 
+  }
+
+  Future<String> getEntities(String finalUrl) async{
+    var uri = Uri.parse(finalUrl);
+    print(uri);
+    var request =  new http.Request("GET", uri);
+    request.headers['Ocp-Apim-Subscription-Key'] = token;
+    request.headers['X-MSEdge-ClientID'] = "1";
+    request.headers['Accept']  = "application/json";
+ //   request.headers['X-Search-Location'] = "lat: 42.3601N, long: 71.0589W";
+
+    var entitiesresponse = await request.send();
+
+    print(entitiesresponse.statusCode);
+
+    print(entitiesresponse.headers);
+
+    if (entitiesresponse.statusCode == 200){
+      String response = await entitiesresponse.stream.bytesToString();
+      print(response);
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => ListEntities(response)),
+      );
+    }
+    else {
+      throw Exception("Failed to load");
+    }
 
   }
 
+  void rebuildAllChildren(BuildContext context) {
+    void rebuild(Element el) {
+      el.markNeedsBuild();
+      el.visitChildren(rebuild);
+    }
+    (context as Element).visitChildren(rebuild);
+  }
+
+
+  @override
+  void initState() {
+    _values.addAll(["Local", "China", "India", "UK", "Latino", "Mexico"]);
+    _value = _values.elementAt(0);
+
+  }
+
+  @override
   Widget build(BuildContext context) {
-    getfinalLocation();
+    _getCurrentLocation();
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
+        appBar: AppBar(backgroundColor: Colors.blue,title: Row(mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[Image.asset('assets/logo1.png', fit: BoxFit.cover, height: 90.0,)],)),
+/*      appBar: AppBar(
         title: Text('FingerTips',
           style: TextStyle(fontFamily: 'Raleway', color: Colors.yellow, fontWeight: FontWeight.bold, fontSize: 30),
         ),
@@ -113,18 +179,19 @@ class _FingerTipsState extends State<FingerTips> {
         backgroundColor: Colors.red,
         elevation: 0.0,
       ),
-      body:Padding(
+*/      body:Padding(
         padding: EdgeInsets.all(10),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
 
-            if (finalLocation != null) new Text(finalLocation),
+         //   if (finalLocation != null) new Text(finalLocation),
+            new Text("${_currentAddress}"),
 
             new Text("Select a nearby community that you would like to explore further",
             style: TextStyle(fontFamily: 'Raleway')),
 
-           new DropdownButton(
+            new DropdownButton(
                value: _value,
                items: _values.map((String value){
                  return new DropdownMenuItem(
@@ -147,8 +214,7 @@ class _FingerTipsState extends State<FingerTips> {
                 Container(
                   child: RaisedButton(
                     color: Colors.lightBlueAccent,
-                    onPressed: (){getfinalLocation();
-                    communityUrl("News");},
+                    onPressed: (){communityUrl("News");},
                     child: Text("Community"),
 
                   ),
@@ -163,7 +229,7 @@ class _FingerTipsState extends State<FingerTips> {
                 Container(
                   child: RaisedButton(
                     color: Colors.lightBlueAccent,
-                    onPressed: (){communityUrl("Local shops");},
+                    onPressed: (){entitiesUrl("Local shops");},
                     child: Text("shops"),
                   ),
                 ),
@@ -179,8 +245,7 @@ class _FingerTipsState extends State<FingerTips> {
                 Container(
                   child: RaisedButton(
                     color: Colors.lightBlueAccent,
-                    onPressed: (){getfinalLocation();
-                    buildUrl("Politics");},
+                    onPressed: (){buildUrl("Politics");},
                     child: Text("News"),
 
                   ),
@@ -208,8 +273,7 @@ class _FingerTipsState extends State<FingerTips> {
                 Container(
                   child: RaisedButton(
                     color: Colors.lightBlueAccent,
-                    onPressed: (){getfinalLocation();
-                    buildUrl("Sports");},
+                    onPressed: (){buildUrl("Sports");},
                     child: Text("Sports"),
 
                   ),
@@ -237,7 +301,5 @@ class _FingerTipsState extends State<FingerTips> {
     );
   }
 }
-
-
 
 

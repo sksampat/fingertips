@@ -83,3 +83,8 @@ flutter:
     - family: Raleway
       fonts:
         - asset: fonts/Raleway-SemiBoldItalic.ttf
+
+  assets:
+    - assets/logo1.png
+
+
