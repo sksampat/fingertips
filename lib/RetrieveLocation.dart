@@ -1,17 +1,18 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 
 
-class RetrieveLocation {
+class RetrieveLocation extends StatelessWidget{
 
   final Geolocator geolocator = Geolocator()
     ..forceAndroidLocationManager;
   Position _currentPosition;
-  String _currentAddress;
+  String currentAddress = 'default';
 
   RetrieveLocation() {
-    _getCurrentLocation();
-    _getAddressFromLatLng();
+    currentAddress = getfinalLocation();
+
   }
 
 
@@ -25,7 +26,6 @@ class RetrieveLocation {
     _getAddressFromLatLng();
   }
 
-
   _getAddressFromLatLng() async {
     try {
       List<Placemark> p = await geolocator.placemarkFromCoordinates(
@@ -34,16 +34,26 @@ class RetrieveLocation {
       Placemark place = p[0];
 
 
-      _currentAddress =
+      currentAddress =
       "${place.locality}, ${place.postalCode}, ${place.country}";
     } catch (e) {
       print(e);
     }
   }
 
-  String getfinalLocation() {
+ String getfinalLocation() {
     _getCurrentLocation();
     _getAddressFromLatLng();
-    return _currentAddress;
+    return currentAddress;
+  }
+  @override
+  Widget build(BuildContext context){
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8.0, 0.0, 8.0, 0.0),
+      child: new Text(currentAddress),
+    );
   }
 }
+
+
+

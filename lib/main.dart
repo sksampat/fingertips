@@ -1,7 +1,10 @@
 import 'dart:convert';
 import 'dart:ui';
 import 'package:fingertips/ListEntities.dart';
+import 'package:fingertips/RetrieveLocation.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import './ListResult.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
@@ -28,7 +31,7 @@ class _FingerTipsState extends State<FingerTips> {
   final token = "0cc8298d0fa64baf8e8c8aad922a77f7";
   final tokenforentity = "2e76114b4bed4a08af24a0443aa58345";
   Position _currentPosition;
-  String _currentAddress;
+  String _currentAddress = 'default';
   String _currentAddressinQueryString;
 
   _getCurrentLocation() async{
@@ -53,7 +56,7 @@ class _FingerTipsState extends State<FingerTips> {
       "${place.locality}, ${place.administrativeArea}, ${place.country}";
 
       _currentAddressinQueryString = "${place.locality}+${place.administrativeArea}";
-    //  _currentAddressinQueryString = "Boston+Massachusetts";
+  //    _currentAddressinQueryString = "Marlboro+New Jersey";
     } catch (e) {
       print(e);
     }
@@ -65,9 +68,10 @@ class _FingerTipsState extends State<FingerTips> {
       if (_value == "UK") market = "en-GB";
       if(_value == "India") market = "en-IN";
       if(_value == "Local") market = "en-US";
-      if(_value == "China") market = "en-US";
-      if(_value == "Mexico") market = "en-mx";
-      if(_value == "Latino") market = "en-US";
+      if(_value == "China") market = "en-id";
+      if(_value == "Mexico") market = "en-WW";
+      if(_value == "Brazil") market = "en-WW";
+      if(_value == "Africa") market = "en-ZA";
     });
   }
 
@@ -79,9 +83,41 @@ class _FingerTipsState extends State<FingerTips> {
 
   }
 
-  void buildUrl(String category){
-    String categoryuri = category+"&mkt="+market;
-    String categorynews= "https://fingertips.cognitiveservices.azure.com/bing/v7.0/news?category="+categoryuri;
+  void globalUrl(String category){
+    if(_value == "India" || _value == "UK" || _value == "Local") {
+      if ((_value == "India") && (category == "News")) category = "India";
+      if ((_value == "UK") && (category == "News")) category = "UK";
+      if ((_value == "Local") && (category == "News")) category = "US";
+      String categoryuri = category + "&mkt=" + market;
+      String categorynews = "https://fingertips.cognitiveservices.azure.com/bing/v7.0/news?category=" +
+          categoryuri;
+      getNews(categorynews);
+    }
+    else {
+      if (category == "News") category = _value+"+News";
+      if (category == "Business") category = _value+"+Business+News";
+      if (category == "Politics") category = _value+"+Politics";
+      if (category == "Sports") category = _value+"+Sports";
+      if (category == "Entertainment") category = _value+"+Entertainment";
+      if (category == "ScienceAndTechnology") category = _value+"+ScienceandTechnology";
+      
+      String categorynews = "https://fingertips.cognitiveservices.azure.com/bing/v7.0/news/search?q=" +
+          category + "&mkt="+market;
+      getNews(categorynews);
+    }
+
+  }
+
+  void stayontopUrl(String category){
+    String categorynews;
+    if (category == "Headlines")
+       categorynews = "https://fingertips.cognitiveservices.azure.com/bing/v7.0/news?mkt=en-us&headlineCount=12";
+
+    if (category == "Trending")
+       categorynews = "https://fingertips.cognitiveservices.azure.com/bing/v7.0/news/trendingtopics?mkt=en-us";
+
+    if (category == "WorldNews")
+      categorynews = "https://fingertips.cognitiveservices.azure.com/bing/v7.0/news?category=World&mkt=en-US";
 
     getNews(categorynews);
 
@@ -159,7 +195,7 @@ class _FingerTipsState extends State<FingerTips> {
 
   @override
   void initState() {
-    _values.addAll(["Local", "China", "India", "UK", "Latino", "Mexico"]);
+    _values.addAll(["Local", "China", "India", "UK", "Brazil", "Mexico", "Africa"]);
     _value = _values.elementAt(0);
 
   }
@@ -169,8 +205,8 @@ class _FingerTipsState extends State<FingerTips> {
     _getCurrentLocation();
     return Scaffold(
       backgroundColor: Colors.white,
-        appBar: AppBar(backgroundColor: Colors.blue,title: Row(mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[Image.asset('assets/logo1.png', fit: BoxFit.cover, height: 90.0,)],)),
+        appBar: AppBar(backgroundColor: Colors.red,title: Row(mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[Image.asset('assets/fingertips.png', fit: BoxFit.cover, height: 60.0,)],)),
 /*      appBar: AppBar(
         title: Text('FingerTips',
           style: TextStyle(fontFamily: 'Raleway', color: Colors.yellow, fontWeight: FontWeight.bold, fontSize: 30),
@@ -179,41 +215,75 @@ class _FingerTipsState extends State<FingerTips> {
         backgroundColor: Colors.red,
         elevation: 0.0,
       ),
-*/      body:Padding(
-        padding: EdgeInsets.all(10),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+*/
+    drawer: Drawer(
+      child: ListView(
+        children: <Widget>[
+          DrawerHeader(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(colors: <Color>[
+                Colors.deepOrange,
+                Colors.orangeAccent
+              ])
+            ),
+            child: Container(
+              child: Column(
+                children: <Widget>[
+                  Image.asset('assets/fingertips.png', width: 126, height:135,),
+                ],
+              )
+            )
+          ),
+          Text(_currentAddress),
+          customListTitle(Icons.map, 'Community', ()=>{}),
+
+ //         customListTitle(Icons.description, 'About Us', ()=>{}),
+        ],
+      )
+    ),
+
+    body: new Container(
+      child:  Column(
+        mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            Container(
+                child: new Text("${_currentAddress}", style: TextStyle(fontFamily: 'Raleway', fontSize: 15))
+            ),
 
-         //   if (finalLocation != null) new Text(finalLocation),
-            new Text("${_currentAddress}"),
+            Container(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  new Text("Select a nearby community",
+                      style: TextStyle(fontFamily: 'Raleway', fontSize: 20)),
 
-            new Text("Select a nearby community that you would like to explore further",
-            style: TextStyle(fontFamily: 'Raleway')),
-
-            new DropdownButton(
-               value: _value,
-               items: _values.map((String value){
-                 return new DropdownMenuItem(
-                   value: value,
-                   child: new Row(
-                     children: <Widget>[
-                       new Text("${value}")
-                     ],
-                   ),
-                 );
-               }).toList(),
-            onChanged: (String value){onChanged(value);},
+                  new DropdownButton(
+                    value: _value,
+                    items: _values.map((String value){
+                      return new DropdownMenuItem(
+                        value: value,
+                        child: new Row(
+                          children: <Widget>[
+                            new Text("${value}", style: TextStyle(fontFamily: 'Raleway', fontSize: 20))
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (String value){onChanged(value);},
 
 
-        ),
+                  ),
+                ],
+              ),
+            ),
 
-            Row(
+            Container(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
                 Container(
                   child: RaisedButton(
-                    color: Colors.lightBlueAccent,
+                    color: Colors.blueGrey,
                     onPressed: (){communityUrl("News");},
                     child: Text("Community"),
 
@@ -221,85 +291,223 @@ class _FingerTipsState extends State<FingerTips> {
                 ),
                 Container(
                   child: RaisedButton(
-                    color: Colors.lightBlueAccent,
+                    color: Colors.blueGrey,
                     onPressed: (){communityUrl("Restaurants");},
                     child: Text("Restaurants"),
                   ),
                 ),
                 Container(
                   child: RaisedButton(
-                    color: Colors.lightBlueAccent,
-                    onPressed: (){entitiesUrl("Local shops");},
+                    color: Colors.blueGrey,
+                    onPressed: (){communityUrl("Local shops");},
                     child: Text("shops"),
                   ),
                 ),
-              ],
+              ]
+            ),
+          ),
 
+            Container(
+              child: Column(
+                children: <Widget>[
+                  new Text("From the Region",
+                  style: TextStyle(fontFamily: 'Raleway', height: 5, fontSize: 20)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: <Widget>[
+                      Container(
+                        child: RaisedButton(
+                          color: Colors.blueGrey,
+                          onPressed: (){globalUrl("News");},
+                          child: Text("News"),
+
+                        ),
+                      ),
+                      Container(
+                        child: RaisedButton(
+                          color: Colors.blueGrey,
+                          onPressed: (){globalUrl("Business");},
+                          child: Text("Business"),
+                        ),
+                      ),
+                      Container(
+                        child: RaisedButton(
+                          color: Colors.blueGrey,
+                          onPressed: (){globalUrl("Politics");},
+                          child: Text("Politics"),
+                        ),
+                      ),
+                    ],
+
+                  ),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: <Widget>[
+                      Container(
+                        child: RaisedButton(
+                          color: Colors.blueGrey,
+                          onPressed: (){globalUrl("Sports");},
+                          child: Text("Sports"),
+
+                        ),
+                      ),
+                      Container(
+                        child: RaisedButton(
+                          color: Colors.blueGrey,
+                          onPressed: (){globalUrl("Entertainment");},
+                          child: Text("Entertainment"),
+                        ),
+                      ),
+                      Container(
+                        child: RaisedButton(
+                          color: Colors.blueGrey,
+                          onPressed: (){globalUrl("ScienceAndTechnology");},
+                          child: Text("Technology"),
+                        ),
+                      ),
+                    ],
+
+                  ),
+                ],
+              ),
             ),
 
-            new Text("From the Region",
-                style: TextStyle(fontFamily: 'Raleway')),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            Column(
               children: <Widget>[
+                new Text("Stay on Top",
+                    style: TextStyle(fontFamily: 'Raleway', height: 5, fontSize: 20)),
                 Container(
-                  child: RaisedButton(
-                    color: Colors.lightBlueAccent,
-                    onPressed: (){buildUrl("Politics");},
-                    child: Text("News"),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: <Widget>[
+                      Container(
+                        child: RaisedButton(
+                          color: Colors.blueGrey,
+                          onPressed: (){stayontopUrl("Headlines");},
+                          child: Text("Headlines"),
 
-                  ),
-                ),
-                Container(
-                  child: RaisedButton(
-                    color: Colors.lightBlueAccent,
-                    onPressed: (){buildUrl("Business");},
-                    child: Text("Business"),
-                  ),
-                ),
-                Container(
-                  child: RaisedButton(
-                    color: Colors.lightBlueAccent,
-                    onPressed: (){buildUrl("ScienceAndTechnology");},
-                    child: Text("Technology"),
+                        ),
+                      ),
+                      Container(
+                        child: RaisedButton(
+                          color: Colors.blueGrey,
+                          onPressed: (){stayontopUrl("Trending");},
+                          child: Text("Trending Stories"),
+                        ),
+                      ),
+                      Container(
+                        child: RaisedButton(
+                          color: Colors.blueGrey,
+                          onPressed: (){stayontopUrl("WorldNews");},
+                          child: Text("World"),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
-
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                Container(
-                  child: RaisedButton(
-                    color: Colors.lightBlueAccent,
-                    onPressed: (){buildUrl("Sports");},
-                    child: Text("Sports"),
-
-                  ),
-                ),
-                Container(
-                  child: RaisedButton(
-                    color: Colors.lightBlueAccent,
-                    onPressed: (){buildUrl("Entertainment");},
-                    child: Text("Entertainment"),
-                  ),
-                ),
-                Container(
-                  child: RaisedButton(
-                    color: Colors.lightBlueAccent,
-                    onPressed: (){buildUrl("LifeStyle");},
-                    child: Text("LifeStyle"),
-                  ),
-                ),
-              ],
-
             )
-      ]
-      ),
+          ],
+      )
+    )
+  );
+  }
+}
+
+class customListTitle extends StatefulWidget{
+
+  IconData icon;
+  String text;
+  Function onTap;
+
+  customListTitle(this.icon, this.text, this.onTap);
+
+  @override
+  _customListTitleState createState() => _customListTitleState();
+}
+
+class _customListTitleState extends State<customListTitle> {
+  String _value = null;
+
+  String market = "en-US";
+
+  List<String> _values = new List<String>();
+
+  void onChanged(String value){
+    setState(() {
+      _value = value;
+      if (_value == "UK") market = "en-GB";
+      if(_value == "India") market = "en-IN";
+      if(_value == "Local") market = "en-US";
+      if(_value == "China") market = "en-id";
+      if(_value == "Mexico") market = "en-WW";
+      if(_value == "Brazil") market = "en-WW";
+      if(_value == "Africa") market = "en-ZA";
+    });
+  }
+
+  @override
+  void initState() {
+    _values.addAll(["Local", "China", "India", "UK", "Brazil", "Mexico", "Africa"]);
+    _value = _values.elementAt(0);
+
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8.0, 0.0, 8.0, 0.0),
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: Colors.grey))
+        ),
+        child: InkWell(
+          splashColor: Colors.orangeAccent,
+          onTap: widget.onTap,
+          child: Container(
+            height: 40,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    Icon(widget.icon),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(widget.text, style: TextStyle(
+                        fontSize: 16
+                      ),)
+                    ),
+
+                  ],
+                ),
+                Icon(Icons.arrow_forward),
+                DropdownButton(
+                  value: _value,
+                  items: _values.map((String value)=> new DropdownMenuItem(
+                    value: value,
+                    child: new Row(
+                      children: <Widget>[
+                        new Text("${value}", style: TextStyle(fontSize: 16))
+                      ],
+                    ),
+                  )).toList(),
+                  onChanged: (String value){onChanged(value);},
+
+
+                ),
+              ],
+            )
+          )
+
+        ),
       )
     );
-  }
+
+    }
 }
 
 
