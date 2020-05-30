@@ -4,52 +4,41 @@ import 'package:flutter/material.dart';
 import './WebviewDetail.dart';
 
 class ListResult extends StatelessWidget {
-  RetrieveList news = null;
+  RetrieveList news;
   var newslist;
   ListResult(String value) {
     final jsonUserData = json.decode(value);
     news = new RetrieveList.fromJson(jsonUserData);
     if (news.value.length > 15) newslist = 15;
     else newslist = news.value.length;
+    print(news.value[1].name);
   }
 
   @override
   Widget build(BuildContext context) {
 
     // TODO: implement build
-    return Scaffold(
-      backgroundColor: Colors.white,
-        appBar: AppBar(
-          title: Text('FingerTips',
-            style: TextStyle(fontFamily: 'Raleway', color: Colors.yellow, fontWeight: FontWeight.bold, fontSize: 30),
-          ),
-          centerTitle: true,
-          backgroundColor: Colors.red,
-          elevation: 0.0,
-        ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(10),
-        itemCount: newslist,
-        itemBuilder: (BuildContext context, int index){
-          return Container(
-            height: 70,
-            child: FlatButton(
-              onPressed: (){
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (BuildContext context) => WebviewDetail(
-                      title: "FingerTips",
-                      selectedUrl: news.value[index].url,
-                    )));
-                },
-              child: Align(
-                alignment: Alignment.topLeft,
-                child: Text(news.value[index].name, textAlign: TextAlign.left,),
-              )
-            ),
-          );
-        },
-
-      )
+    return ListView.builder(
+          padding: const EdgeInsets.all(10),
+          itemCount: newslist,
+          itemBuilder: (BuildContext context, int index){
+            return Container(
+              height: 70,
+              child: FlatButton(
+                onPressed: (){
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (BuildContext context) => WebviewDetail(
+                        title: "FingerTips",
+                        selectedUrl: news.value[index].url,
+                      )));
+                  },
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: Text(news.value[index].name, textAlign: TextAlign.left,),
+                )
+              ),
+            );
+          },
 
     );
   }
