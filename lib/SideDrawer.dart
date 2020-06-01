@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:fingertips/CustomListTitle.dart';
 import 'package:fingertips/Globals.dart' as globals;
+bool loadingLocation;
 
 class SideDrawer extends StatelessWidget {
 
@@ -14,10 +15,11 @@ class SideDrawer extends StatelessWidget {
   final Geolocator geolocator = Geolocator()
     ..forceAndroidLocationManager;
 
-  Future <String> _getCurrentLocation() async{
+  Future <bool> _getCurrentLocation() async{
 
     if (globals.getAddress() != null)
-      return(globals.getAddress());
+      return true;
+
     geolocator
         .getCurrentPosition(desiredAccuracy: LocationAccuracy.best)
         .then((Position position) {
@@ -33,10 +35,11 @@ class SideDrawer extends StatelessWidget {
 //      await Future.delayed(Duration(seconds: 2));
 
       _currentAddress =  "${place.locality}, ${place.administrativeArea}, ${place.country}";
+      globals.setAddressforCommunityQuery("${place.locality}+${place.administrativeArea}");
+      globals.setAddressforSideDrawerDisplay(_currentAddress);
 
-//      globals.setAddress("${place.locality}+${place.administrativeArea}");
 
-      return _currentAddress;
+      return true;
       //    _currentAddressinQueryString = "Marlboro+New Jersey";
     } catch (e) {
       print(e);
@@ -47,11 +50,11 @@ class SideDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-          child: new FutureBuilder<String>(
+          child: new FutureBuilder(
             future: _getCurrentLocation(),
             builder: (BuildContext context, AsyncSnapshot snapshot){
 
-              if (snapshot.data == null){
+              if (snapshot.hasData == false){
                 return Container(
                   child: Center(
                     child: Text("Loading")
@@ -77,7 +80,7 @@ class SideDrawer extends StatelessWidget {
                       )
                   ),
                   new Padding(padding: EdgeInsets.fromLTRB(15,10,5,10)),
-                  Text(snapshot.data, style: new TextStyle(color: Colors.deepOrange, fontSize: 15.0, fontWeight: FontWeight.bold),),
+                  Text(globals.getAddressinQueryString(), style: new TextStyle(color: Colors.deepOrange, fontSize: 15.0, fontWeight: FontWeight.bold),),
                   new Padding(padding: EdgeInsets.fromLTRB(15,10,15,10)),
                   customListTitle(Icons.map, 'Community', ()=>{}),
 

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:fingertips/Globals.dart' as globals;
 
 
-class RetrieveLocation extends StatelessWidget{
+class RetrieveLocation{
 
   final Geolocator geolocator = Geolocator()
     ..forceAndroidLocationManager;
@@ -11,8 +12,7 @@ class RetrieveLocation extends StatelessWidget{
   String currentAddress = 'default';
 
   RetrieveLocation() {
-    currentAddress = getfinalLocation();
-
+   _getCurrentLocation();
   }
 
 
@@ -35,23 +35,18 @@ class RetrieveLocation extends StatelessWidget{
 
 
       currentAddress =
-      "${place.locality}, ${place.postalCode}, ${place.country}";
+      "${place.locality}, ${place.administrativeArea}, ${place.country}";
+
+      print("Calling adddress from retrievelocation");
+      globals.setAddressforCommunityQuery("${place.locality}+${place.administrativeArea}");
+      globals.setAddressforSideDrawerDisplay(currentAddress);
     } catch (e) {
       print(e);
     }
   }
-
- String getfinalLocation() {
+  getfinalLocation() {
     _getCurrentLocation();
     _getAddressFromLatLng();
-    return currentAddress;
-  }
-  @override
-  Widget build(BuildContext context){
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(8.0, 0.0, 8.0, 0.0),
-      child: new Text(currentAddress),
-    );
   }
 }
 

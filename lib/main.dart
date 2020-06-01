@@ -19,12 +19,9 @@ void main() => runApp(MaterialApp(
     home: FingerTips(),
 ));
 
-class FingerTips extends StatefulWidget {
-  @override
-  _FingerTipsState createState() => _FingerTipsState();
-}
 
-class _FingerTipsState extends State<FingerTips> {
+
+class FingerTips extends StatelessWidget{
   @override
 
   final Geolocator geolocator = Geolocator()
@@ -58,50 +55,22 @@ class _FingerTipsState extends State<FingerTips> {
 
       _currentAddress = await "${place.locality}, ${place.administrativeArea}, ${place.country}";
 
-      globals.setAddressinQueryString("${place.locality}+${place.administrativeArea}");
-
-      globals.setAddress(_currentAddress);
+      print("Calling adddress from main");
+      globals.setAddressforCommunityQuery("${place.locality}+${place.administrativeArea}");
+      globals.setAddressforSideDrawerDisplay(_currentAddress);
   //    _currentAddressinQueryString = "Marlboro+New Jersey";
     } catch (e) {
       print(e);
     }
   }
 
-  void onChanged(String value){
-    setState(() {
-      _value = value;
-      if (_value == "UK") market = "en-GB";
-      if(_value == "India") market = "en-IN";
-      if(_value == "Local") market = "en-US";
-      if(_value == "China") market = "en-id";
-      if(_value == "Mexico") market = "en-WW";
-      if(_value == "Brazil") market = "en-WW";
-      if(_value == "Africa") market = "en-ZA";
-    });
-  }
-
-
-
-
-  void rebuildAllChildren(BuildContext context) {
-    void rebuild(Element el) {
-      el.markNeedsBuild();
-      el.visitChildren(rebuild);
-    }
-    (context as Element).visitChildren(rebuild);
-  }
-
-
   @override
-  Future<void> initState()  {
-    _values.addAll(["Local", "China", "India", "UK", "Brazil", "Mexico", "Africa"]);
-    _value = _values.elementAt(0);
-
+  initState()  {
+    _getCurrentLocation();
   }
 
   @override
   Widget build(BuildContext context) {
-    _getCurrentLocation();
     return ChangeNotifierProvider(
       builder: (context) => MyMarket(),
       child: MaterialApp(
@@ -109,13 +78,13 @@ class _FingerTipsState extends State<FingerTips> {
           length: 10,
           child: Scaffold(
             backgroundColor: Colors.white,
-              appBar: AppBar(backgroundColor: Colors.deepPurple,
+              appBar: AppBar(backgroundColor: Colors.deepOrange,
            //     title: Row(mainAxisAlignment: MainAxisAlignment.center,
            //   children: <Widget>[Image.asset('assets/fingertips.png', fit: BoxFit.cover, height: 60.0,)],),
 
               title: TabBar(
                   isScrollable: true,
-                  unselectedLabelColor: Colors.lime,
+                  unselectedLabelColor: Colors.black45,
                   indicatorSize: TabBarIndicatorSize.label,
                   indicatorColor: Colors.indigoAccent,
                   tabs: [

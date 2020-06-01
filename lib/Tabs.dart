@@ -2,8 +2,13 @@ import 'package:fingertips/MyMarket.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:fingertips/UrlBuilder.dart';
+import 'package:fingertips/RetrieveLocation.dart';
 
 class Tabs extends StatelessWidget {
+
+  tabs(){
+    new RetrieveLocation();
+  }
 
   @override
   Widget build(BuildContext context) {

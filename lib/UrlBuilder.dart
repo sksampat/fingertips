@@ -15,11 +15,11 @@ class UrlBuilder extends StatelessWidget{
   final token = "0cc8298d0fa64baf8e8c8aad922a77f7";
   final tokenforentity = "2e76114b4bed4a08af24a0443aa58345";
   String _currentAddress = 'default';
-//  String _currentAddressinQueryString = globals.getAddressinQueryString();
-  String _currentAddressinQueryString = "Boxborough+MA";
+  String _currentAddressinQueryString = globals.getAddressinQueryString();
+//  String _currentAddressinQueryString = "Boxborough+MA";
   String _value;
   String markets = "en-US";
-  bool isLoading  = true;
+  bool finishedLoading;
   var streamedresponse;
   RetrieveList news = null;
   var newslist;
@@ -63,15 +63,19 @@ class UrlBuilder extends StatelessWidget{
 
 
   void communityUrl(String category){
+    if(globals.getAddressinQueryString() == null)
+      _currentAddressinQueryString = "USA";
+    else
+      _currentAddressinQueryString = globals.getAddressinQueryString();
     String queryuri = category+"+"+_value+"+"+_currentAddressinQueryString;
     String searchnews = "https://fingertips.cognitiveservices.azure.com/bing/v7.0/news/search?q="+queryuri+"&mkt=en-us";
     print(_currentAddressinQueryString);
-    getNews(searchnews);
+    finalUrl = searchnews;
+ //   getNews(searchnews);
 
   }
 
   void globalUrl(String category){
-    print("In Global Url");
     if(_value == "India" || _value == "UK" || _value == "Local") {
       print("Inside Global and value "+_value);
       if ((_value == "India") && (category == "News")) category = "India";
@@ -80,7 +84,8 @@ class UrlBuilder extends StatelessWidget{
       String categoryuri = category + "&mkt=" + markets;
       String categorynews = "https://fingertips.cognitiveservices.azure.com/bing/v7.0/news?category=" +
           categoryuri;
-      getNews(categorynews);
+      finalUrl = categorynews;
+//      getNews(categorynews);
     }
     else {
       if (category == "News") category = _value+"+News";
@@ -92,7 +97,8 @@ class UrlBuilder extends StatelessWidget{
 
       String categorynews = "https://fingertips.cognitiveservices.azure.com/bing/v7.0/news/search?q="+
           category + "&mkt="+markets;
-      getNews(categorynews);
+      finalUrl = categorynews;
+//      getNews(categorynews);
     }
 
   }
@@ -108,15 +114,16 @@ class UrlBuilder extends StatelessWidget{
     if (category == "WorldNews")
       categorynews = "https://fingertips.cognitiveservices.azure.com/bing/v7.0/news?category=World&mkt=en-US";
 
-//    finalUrl = categorynews;
+    finalUrl = categorynews;
 
-    getNews(categorynews);
+//    getNews(categorynews);
 
   }
 
 
-  Future<String> getNews(finalUrl) async{
+  Future<bool> getNews() async{
     print(finalUrl);
+    finishedLoading = false;
     var uri = Uri.parse(finalUrl);
     var request =  new http.Request("GET", uri);
     request.headers['Ocp-Apim-Subscription-Key'] = token;
@@ -141,31 +148,31 @@ class UrlBuilder extends StatelessWidget{
       throw Exception("Failed to load");
     }
 //    await Future.delayed(Duration(seconds: 1));
-    isLoading = false;
+    finishedLoading = true;
 
-    return streamedresponse;
+    return finishedLoading;
 
   }
 
-/*  Future <RetrieveList> listResult() async{
-    if (news == null) await news;
+  Future <RetrieveList> listResult() async{
+    await news;
 
     if (news != null) return news;
 
 }
-*/
+
 
 
   @override
   Widget build(BuildContext context) {
     return Container(
         child: FutureBuilder(
- //         future: listResult(),
+          future: getNews(),
           builder: (context, AsyncSnapshot snapshot){
-            if (snapshot.data == null)
+            if (snapshot.hasData == false)
               return Center(child: CircularProgressIndicator());
             else
-            ListView.builder(
+            return(ListView.builder(
               //        padding: const EdgeInsets.all(10),
               itemCount: newslist,
               itemBuilder: (BuildContext context, int index) {
@@ -192,6 +199,7 @@ class UrlBuilder extends StatelessWidget{
                 );
               },
 
+            )
             );
           }
 
