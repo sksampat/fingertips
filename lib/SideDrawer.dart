@@ -1,7 +1,8 @@
+import 'package:fingertips/About.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:fingertips/CustomListTitle.dart';
+import 'package:fingertips/SelectRegion.dart';
 import 'package:fingertips/Globals.dart' as globals;
 bool loadingLocation;
 
@@ -82,7 +83,9 @@ class SideDrawer extends StatelessWidget {
                   new Padding(padding: EdgeInsets.fromLTRB(15,10,5,10)),
                   Text(globals.getAddressinQueryString(), style: new TextStyle(color: Colors.deepOrange, fontSize: 15.0, fontWeight: FontWeight.bold),),
                   new Padding(padding: EdgeInsets.fromLTRB(15,10,15,10)),
-                  customListTitle(Icons.map, 'Community', ()=>{}),
+                  selectRegion(Icons.map, 'Community', ()=>{}),
+                  new Padding(padding: EdgeInsets.fromLTRB(15,10,15,10)),
+                  about(Icons.map, 'About', ()=>{}),
 
                   //         customListTitle(Icons.description, 'About Us', ()=>{}),
                 ],

@@ -3,19 +3,19 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class customListTitle extends StatefulWidget{
+class selectRegion extends StatefulWidget{
 
   IconData icon;
   String text;
   Function onTap;
 
-  customListTitle(this.icon, this.text, this.onTap);
+  selectRegion(this.icon, this.text, this.onTap);
 
   @override
-  _customListTitleState createState() => _customListTitleState();
+  _selectRegionState createState() => _selectRegionState();
 }
 
-class _customListTitleState extends State<customListTitle> {
+class _selectRegionState extends State<selectRegion> {
   String _value = "Local";
 
   String market = "en-US";
@@ -46,7 +46,6 @@ class _customListTitleState extends State<customListTitle> {
   @override
   Widget build(BuildContext context) {
     final  marketchange= Provider.of<MyMarket>(context);
-    // TODO: implement build
     return Padding(
         padding: const EdgeInsets.fromLTRB(8.0, 0.0, 8.0, 0.0),
         child: Container(

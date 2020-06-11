@@ -6,7 +6,8 @@ import 'package:fingertips/RetrieveLocation.dart';
 
 class Tabs extends StatelessWidget {
 
-  tabs(){
+  Tabs(){
+    print("Inside tabs");
     new RetrieveLocation();
   }
 

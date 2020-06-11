@@ -7,7 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import './ListResult.dart';
-import './CustomListTitle.dart';
+import './SelectRegion.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:geolocator/geolocator.dart';
@@ -78,7 +78,7 @@ class FingerTips extends StatelessWidget{
           length: 10,
           child: Scaffold(
             backgroundColor: Colors.white,
-              appBar: AppBar(backgroundColor: Colors.deepOrange,
+              appBar: AppBar(backgroundColor: Colors.black26,
            //     title: Row(mainAxisAlignment: MainAxisAlignment.center,
            //   children: <Widget>[Image.asset('assets/fingertips.png', fit: BoxFit.cover, height: 60.0,)],),
 
@@ -93,7 +93,7 @@ class FingerTips extends StatelessWidget{
                           decoration: BoxDecoration(
                             gradient: LinearGradient(colors: [Colors.deepOrange, Colors.red]),
                             borderRadius: BorderRadius.circular(50),
-                            border: Border.all(color: Colors.redAccent, width: 1)
+                            border: Border.all(color: Colors.blue, width: 1)
                           ),
                         child: Align(alignment: Alignment.center,child: Text("Headlines")),
                         ),

@@ -22,6 +22,7 @@ class UrlBuilder extends StatelessWidget{
   bool finishedLoading;
   var streamedresponse;
   RetrieveList news = null;
+  TrendingList trendingnews = null;
   var newslist;
   String finalUrl;
 
@@ -31,9 +32,6 @@ class UrlBuilder extends StatelessWidget{
     setMarketState(_value);
     invokeCategory(tabCategory);
   }
-
-
-
 
   setMarketState(String value){
       _value = value;
@@ -72,6 +70,7 @@ class UrlBuilder extends StatelessWidget{
     print(_currentAddressinQueryString);
     finalUrl = searchnews;
  //   getNews(searchnews);
+    getNews();
 
   }
 
@@ -86,6 +85,7 @@ class UrlBuilder extends StatelessWidget{
           categoryuri;
       finalUrl = categorynews;
 //      getNews(categorynews);
+    getNews();
     }
     else {
       if (category == "News") category = _value+"+News";
@@ -99,6 +99,7 @@ class UrlBuilder extends StatelessWidget{
           category + "&mkt="+markets;
       finalUrl = categorynews;
 //      getNews(categorynews);
+    getNews();
     }
 
   }
@@ -117,6 +118,7 @@ class UrlBuilder extends StatelessWidget{
     finalUrl = categorynews;
 
 //    getNews(categorynews);
+  getNews();
 
   }
 
@@ -136,9 +138,19 @@ class UrlBuilder extends StatelessWidget{
     if (streamedresponse.statusCode == 200){
       String response = await streamedresponse.stream.bytesToString();
       final jsonUserData = json.decode(response);
-      news = new RetrieveList.fromJson(jsonUserData);
-      if (news.value.length > 15) newslist = 15;
-      else newslist = news.value.length;
+      if (tabCategory == "Trending") {
+        trendingnews = new TrendingList.fromJson(jsonUserData);
+        if (trendingnews.value.length > 15) newslist = 15;
+        else newslist = trendingnews.value.length;
+        print("Sathish inside trending");
+      }
+      else {
+        news = new RetrieveList.fromJson(jsonUserData);
+        if (news.value.length > 15) newslist = 15;
+        else newslist = news.value.length;
+      }
+
+
   //    Navigator.push(
   //      context,
   //      MaterialPageRoute(builder: (context) => ListResult(response)),
@@ -154,14 +166,6 @@ class UrlBuilder extends StatelessWidget{
 
   }
 
-  Future <RetrieveList> listResult() async{
-    await news;
-
-    if (news != null) return news;
-
-}
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -169,7 +173,7 @@ class UrlBuilder extends StatelessWidget{
         child: FutureBuilder(
           future: getNews(),
           builder: (context, AsyncSnapshot snapshot){
-            if (snapshot.hasData == false)
+            if ((snapshot.hasData == false) &&(news.value.length == null) )
               return Center(child: CircularProgressIndicator());
             else
             return(ListView.builder(
@@ -254,6 +258,45 @@ class Newsarticle{
     return Newsarticle(
         name: parsedJson['name'],
         url: parsedJson['url']
+
+    );
+  }
+}
+
+class TrendingList{
+
+  final List<TrendingTopics>value;
+
+
+  TrendingList({
+    this.value,
+  });
+  factory TrendingList.fromJson(Map<String, dynamic>parsedJson){
+
+    var list = parsedJson['value'] as List;
+    List<TrendingTopics> valuelist = list.map((i) => TrendingTopics.fromJson(i)).toList();
+
+    return new TrendingList(
+        value: valuelist
+    );
+
+  }
+
+}
+
+class TrendingTopics{
+  final String name;
+  final String url;
+
+  TrendingTopics({
+    this.name,
+    this.url,
+  });
+
+  factory TrendingTopics.fromJson(Map<String, dynamic> parsedJson){
+    return TrendingTopics(
+        name: parsedJson['name'],
+        url: parsedJson['newsSearchUrl']
 
     );
   }
