@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:fingertips/Globals.dart' as globals;
 
@@ -12,21 +10,23 @@ class RetrieveLocation{
   String currentAddress = 'default';
 
   RetrieveLocation() {
-   _getCurrentLocation();
+    print("Inside Retrieve Location");
+    getLocation();
+  }
+
+   getLocation() {
+      _getCurrentLocation();
   }
 
 
-  _getCurrentLocation() {
+ Future <bool> _getCurrentLocation() async{
     geolocator
         .getCurrentPosition(desiredAccuracy: LocationAccuracy.best)
         .then((Position position) {
       _currentPosition = position;
     });
+    print("Inside get current location");
 
-    _getAddressFromLatLng();
-  }
-
-  _getAddressFromLatLng() async {
     try {
       List<Placemark> p = await geolocator.placemarkFromCoordinates(
           _currentPosition.latitude, _currentPosition.longitude);
@@ -37,17 +37,38 @@ class RetrieveLocation{
       currentAddress =
       "${place.locality}, ${place.administrativeArea}, ${place.country}";
 
+
       print("Calling adddress from retrievelocation");
       globals.setAddressforCommunityQuery("${place.locality}+${place.administrativeArea}");
       globals.setAddressforSideDrawerDisplay(currentAddress);
+      return true;
+    } catch (e) {
+      print(e);
+    }
+//    _getAddressFromLatLng();
+  }
+
+/*  Future <bool> _getAddressFromLatLng() async {
+    try {
+      List<Placemark> p = await geolocator.placemarkFromCoordinates(
+          _currentPosition.latitude, _currentPosition.longitude);
+
+      Placemark place = p[0];
+
+
+      currentAddress =
+      "${place.locality}, ${place.administrativeArea}, ${place.country}";
+
+
+      print("Calling adddress from retrievelocation");
+      globals.setAddressforCommunityQuery("${place.locality}+${place.administrativeArea}");
+      globals.setAddressforSideDrawerDisplay(currentAddress);
+      return true;
     } catch (e) {
       print(e);
     }
   }
-  getfinalLocation() {
-    _getCurrentLocation();
-    _getAddressFromLatLng();
-  }
+  */
 }
 
 

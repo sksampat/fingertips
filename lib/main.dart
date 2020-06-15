@@ -65,8 +65,8 @@ class FingerTips extends StatelessWidget{
   }
 
   @override
-  initState()  {
-    _getCurrentLocation();
+  initState()  async{
+    await _getCurrentLocation();
   }
 
   @override

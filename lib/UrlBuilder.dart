@@ -9,8 +9,7 @@ import './WebviewDetail.dart';
 import 'package:fingertips/Globals.dart' as globals;
 
 class UrlBuilder extends StatelessWidget{
-
-  String tabCategory;
+  String tabs;
   String mktvalue;
   final token = "0cc8298d0fa64baf8e8c8aad922a77f7";
   final tokenforentity = "2e76114b4bed4a08af24a0443aa58345";
@@ -22,17 +21,13 @@ class UrlBuilder extends StatelessWidget{
   bool finishedLoading;
   var streamedresponse;
   RetrieveList news = null;
-  TrendingList trendingnews = null;
   var newslist;
   String finalUrl;
-
-
   UrlBuilder(_value, tabCategory){
     print(_value);
     setMarketState(_value);
     invokeCategory(tabCategory);
   }
-
   setMarketState(String value){
       _value = value;
       if (_value == "UK") markets = "en-GB";
@@ -45,6 +40,7 @@ class UrlBuilder extends StatelessWidget{
   }
 
   invokeCategory(String tabCategory){
+    tabs = tabCategory;
     if (tabCategory == "Headlines") stayontopUrl(tabCategory);
     if (tabCategory == "Trending") stayontopUrl(tabCategory);
     if (tabCategory == "WorldNews") stayontopUrl(tabCategory);
@@ -57,8 +53,6 @@ class UrlBuilder extends StatelessWidget{
     if (tabCategory == "ScienceAndTechnology") globalUrl(tabCategory);
 
   }
-
-
 
   void communityUrl(String category){
     if(globals.getAddressinQueryString() == null)
@@ -73,7 +67,6 @@ class UrlBuilder extends StatelessWidget{
     getNews();
 
   }
-
   void globalUrl(String category){
     if(_value == "India" || _value == "UK" || _value == "Local") {
       print("Inside Global and value "+_value);
@@ -125,6 +118,7 @@ class UrlBuilder extends StatelessWidget{
 
   Future<bool> getNews() async{
     print(finalUrl);
+    print(tabs);
     finishedLoading = false;
     var uri = Uri.parse(finalUrl);
     var request =  new http.Request("GET", uri);
@@ -134,23 +128,12 @@ class UrlBuilder extends StatelessWidget{
 
     streamedresponse = await request.send();
 
-
     if (streamedresponse.statusCode == 200){
       String response = await streamedresponse.stream.bytesToString();
       final jsonUserData = json.decode(response);
-      if (tabCategory == "Trending") {
-        trendingnews = new TrendingList.fromJson(jsonUserData);
-        if (trendingnews.value.length > 15) newslist = 15;
-        else newslist = trendingnews.value.length;
-        print("Sathish inside trending");
-      }
-      else {
-        news = new RetrieveList.fromJson(jsonUserData);
-        if (news.value.length > 15) newslist = 15;
-        else newslist = news.value.length;
-      }
-
-
+      news = new RetrieveList.fromJson(jsonUserData, tabs);
+      if (news.value.length > 15) newslist = 15;
+      else newslist = news.value.length;
   //    Navigator.push(
   //      context,
   //      MaterialPageRoute(builder: (context) => ListResult(response)),
@@ -166,14 +149,13 @@ class UrlBuilder extends StatelessWidget{
 
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Container(
         child: FutureBuilder(
           future: getNews(),
           builder: (context, AsyncSnapshot snapshot){
-            if ((snapshot.hasData == false) &&(news.value.length == null) )
+            if ((snapshot.hasData == false) || (news == null) )
               return Center(child: CircularProgressIndicator());
             else
             return(ListView.builder(
@@ -222,24 +204,20 @@ class UrlBuilder extends StatelessWidget{
 
 
 class RetrieveList{
-
-  final String id;
   final List<Newsarticle>value;
 
 
   RetrieveList({
-    this.id,
     this.value,
   });
-  factory RetrieveList.fromJson(Map<String, dynamic>parsedJson){
-
+  factory RetrieveList.fromJson(Map<String, dynamic>parsedJson, String tabs){
     var list = parsedJson['value'] as List;
-    List<Newsarticle> valuelist = list.map((i) => Newsarticle.fromJson(i)).toList();
+    List<Newsarticle> valuelist = list.map((i) => Newsarticle.fromJson(i, tabs))
+          .toList();
 
     return new RetrieveList(
-        id: parsedJson['readLink'],
-        value: valuelist
-    );
+          value: valuelist
+      );
 
   }
 
@@ -254,7 +232,14 @@ class Newsarticle{
     this.url,
   });
 
-  factory Newsarticle.fromJson(Map<String, dynamic> parsedJson){
+  factory Newsarticle.fromJson(Map<String, dynamic> parsedJson, String tabs){
+    if (tabs == "Trending"){
+      return Newsarticle(
+          name: parsedJson['name'],
+          url: parsedJson['webSearchUrl']
+      );
+    }
+    else
     return Newsarticle(
         name: parsedJson['name'],
         url: parsedJson['url']
@@ -263,41 +248,5 @@ class Newsarticle{
   }
 }
 
-class TrendingList{
-
-  final List<TrendingTopics>value;
 
 
-  TrendingList({
-    this.value,
-  });
-  factory TrendingList.fromJson(Map<String, dynamic>parsedJson){
-
-    var list = parsedJson['value'] as List;
-    List<TrendingTopics> valuelist = list.map((i) => TrendingTopics.fromJson(i)).toList();
-
-    return new TrendingList(
-        value: valuelist
-    );
-
-  }
-
-}
-
-class TrendingTopics{
-  final String name;
-  final String url;
-
-  TrendingTopics({
-    this.name,
-    this.url,
-  });
-
-  factory TrendingTopics.fromJson(Map<String, dynamic> parsedJson){
-    return TrendingTopics(
-        name: parsedJson['name'],
-        url: parsedJson['newsSearchUrl']
-
-    );
-  }
-}
